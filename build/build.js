@@ -30,7 +30,7 @@ const currentM = currentDate.getUTCMonth() + 1;
 const currentD = currentDate.getUTCDate();
 const currentH = currentDate.getUTCHours();
 const currentMi = currentDate.getUTCMinutes();
-const buildTimes = toFix(currentY,4) + toFix(currentM,2) + toFix(currentD,2) + toFix(currentH,2) + toFix(currentMi,2);
+const buildTimes = toFix(currentY, 4) + toFix(currentM, 2) + toFix(currentD, 2) + toFix(currentH, 2) + toFix(currentMi, 2);
 fs.writeFileSync('electron-builder.env', `buildTimes=${buildTimes}`)
 
 // generate build version
@@ -38,7 +38,7 @@ const packages = require('./package.json');
 const version = packages.version;
 const weblink = "http://106.15.238.81:56789/oauth";
 const portable = process.argv.includes("portable");
-const arch = process.argv.includes("--universal") ? "universal" : (process.argv.includes("--x64") ? "x64" : (process.arch === "arm64" ? "arm64" : "x64"));
+const arch = process.argv.includes("--universal") ? "universal" : (process.argv.includes("--x64") ? "x64" : (process.argv.includes("--arm64") ? "arm64" : (process.arch === "arm64" ? "arm64" : "x64")));
 fs.writeFileSync('../core/src/version/version.json', `{"version":"${version}","portable": ${portable},"weblink": "${weblink}"}`)
 
 /**
@@ -101,7 +101,7 @@ if (arch === "universal") {
       const relPath = path.relative("node_modules", file);
       const arm64Path = path.join("node_modules_arm64", relPath);
       const x64Path = path.join("node_modules_x64", relPath);
-      
+
       if (fs.existsSync(x64Path)) {
         const fileInfo = shelljs.exec(`file "${file}"`, { silent: true }).stdout;
         if (fileInfo.includes("Mach-O")) {
@@ -124,6 +124,8 @@ if (arch === "universal") {
   shelljs.exec("npm run build:universal");
 } else if (arch === "x64") {
   shelljs.exec("npm run build:x64");
+} else if (arch === "arm64") {
+  shelljs.exec("npm run build -- --arm64");
 } else {
   shelljs.exec("npm run build");
 }

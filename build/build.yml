@@ -1,16 +1,17 @@
 appId: org.nxshell.shell
 productName: NxShell
-copyright: Copyright © 2020-2021 NxShell Team
+copyright: Copyright © 2020-2024 NxShell Team
 artifactName: ${productName}-${arch}-${os}-${version}-${env.buildTimes}.${ext}
 electronDownload:
-  mirror: https://npm.taobao.org/mirrors/electron/ 
+  mirror: https://npmmirror.com/mirrors/electron/
 extraResources:
   - from: ../pack/native/node_modules
     to: node_modules
   - from: ../resources/nxshell.png
     to: nxshell.png
 files:
-  - filter: "!native"
+  - "**/*"
+  - "!native"
 directories:
   buildResources: ../resources
   output: ../dist/apppackage
@@ -39,6 +40,8 @@ linux:
   category: Development
 mac:
   target: dmg
+  hardenedRuntime: true
+  gatekeeperAssess: false
   icon: ../resources/mac/icon-128.icns
   category: public.app-category.developer-tools
 afterPack: ./afterPackHook.js
