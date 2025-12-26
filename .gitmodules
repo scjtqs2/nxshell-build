@@ -1,0 +1,6 @@
+[submodule "core"]
+	path = core
+	url = https://github.com/scjtqs2/nxshell-core.git
+[submodule "shell"]
+	path = shell
+	url = https://github.com/scjtqs2/nxshell-shell
