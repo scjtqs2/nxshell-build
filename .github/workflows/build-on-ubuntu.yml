@@ -5,31 +5,30 @@ name: NxShell CI on Ubuntu
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        node-version: [16.x]
+        node-version: [20.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node-version }}
-    - run: cd build && npm install
-    - run: cd build && node build.js
-    - run: cd build && node publish.js
-      env:
-        PUBLISH_HOST: ${{ secrets.PUBLISH_HOST }}
-        PUBLISH_PORT: ${{ secrets.PUBLISH_PORT }}
-        PUBLISH_USER: ${{ secrets.PUBLISH_USER }}
-        PUBLISH_PWD: ${{ secrets.PUBLISH_PWD }}
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: cd build && npm install
+      - run: cd build && node build.js
+      - run: cd build && node publish.js
+        env:
+          PUBLISH_HOST: ${{ secrets.PUBLISH_HOST }}
+          PUBLISH_PORT: ${{ secrets.PUBLISH_PORT }}
+          PUBLISH_USER: ${{ secrets.PUBLISH_USER }}
+          PUBLISH_PWD: ${{ secrets.PUBLISH_PWD }}
