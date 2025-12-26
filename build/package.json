@@ -5,6 +5,8 @@
   "main": "index.js",
   "scripts": {
     "build": "electron-builder --config build.yml",
+    "build:x64": "electron-builder --config build.yml --x64",
+    "build:universal": "electron-builder --config build.yml --universal",
     "build:debug": "DEBUG=electron-builder electron-builder --config build.yml"
   },
   "author": {

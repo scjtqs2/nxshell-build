@@ -1,5 +1,6 @@
 const shelljs = require("shelljs");
 const fs = require('fs');
+const path = require('path');
 
 // download shell/core source code
 // shelljs.cd("../");
@@ -9,11 +10,11 @@ const fs = require('fs');
 
 const build_packages = require('./package-lock.json');
 const electron_version = build_packages['dependencies']['electron']['version'];
-function electron_rebuild(packages) {
+function electron_rebuild(packages, arch) {
   console.log('Electron version is ', electron_version);
   let p = packages.join(',')
-  console.log('Will rebuild electron node packages ', p);
-  shelljs.exec(`npm run rebuild -- -f -v ${electron_version} -w ${p}`)
+  console.log('Will rebuild electron node packages ', p, ' for arch ', arch);
+  shelljs.exec(`npm run rebuild -- -f -v ${electron_version} -w ${p} -a ${arch}`)
 }
 
 
@@ -36,7 +37,8 @@ fs.writeFileSync('electron-builder.env', `buildTimes=${buildTimes}`)
 const packages = require('./package.json');
 const version = packages.version;
 const weblink = "http://106.15.238.81:56789/oauth";
-const portable = process.argv[2] === "portable" ? true : false;
+const portable = process.argv.includes("portable");
+const arch = process.argv.includes("--universal") ? "universal" : (process.argv.includes("--x64") ? "x64" : (process.arch === "arm64" ? "arm64" : "x64"));
 fs.writeFileSync('../core/src/version/version.json', `{"version":"${version}","portable": ${portable},"weblink": "${weblink}"}`)
 
 /**
@@ -79,9 +81,49 @@ shelljs.mkdir("-p", "./native");
 shelljs.exec("\cp ../build/native-package.json ./native/package.json");
 shelljs.cd("native");
 shelljs.exec("npm install --production=false");
-electron_rebuild(['serialport', 'node-pty'])
+if (arch === "universal") {
+  console.log('Building universal native modules...');
+  // 1. Build arm64
+  electron_rebuild(['serialport', 'node-pty'], 'arm64');
+  shelljs.mv("node_modules", "node_modules_arm64");
+
+  // 2. Build x64
+  shelljs.exec("npm install --production=false");
+  electron_rebuild(['serialport', 'node-pty'], 'x64');
+  shelljs.mv("node_modules", "node_modules_x64");
+
+  // 3. Merge with lipo
+  console.log('Merging native modules with lipo...');
+  shelljs.cp("-rf", "node_modules_arm64", "node_modules");
+  const allFiles = shelljs.find("node_modules");
+  allFiles.forEach(file => {
+    if (fs.lstatSync(file).isFile()) {
+      const relPath = path.relative("node_modules", file);
+      const arm64Path = path.join("node_modules_arm64", relPath);
+      const x64Path = path.join("node_modules_x64", relPath);
+      
+      if (fs.existsSync(x64Path)) {
+        const fileInfo = shelljs.exec(`file "${file}"`, { silent: true }).stdout;
+        if (fileInfo.includes("Mach-O")) {
+          console.log(`Merging binary: ${relPath}`);
+          shelljs.exec(`lipo -create "${arm64Path}" "${x64Path}" -output "${file}"`);
+        }
+      }
+    }
+  });
+  shelljs.rm("-rf", "node_modules_arm64");
+  shelljs.rm("-rf", "node_modules_x64");
+} else {
+  electron_rebuild(['serialport', 'node-pty'], arch);
+}
 shelljs.exec("npm uninstall electron-rebuild");
 shelljs.cd("../");
 
 shelljs.cd("../build");
-shelljs.exec("npm run build");
+if (arch === "universal") {
+  shelljs.exec("npm run build:universal");
+} else if (arch === "x64") {
+  shelljs.exec("npm run build:x64");
+} else {
+  shelljs.exec("npm run build");
+}
