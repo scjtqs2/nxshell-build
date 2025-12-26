@@ -2,10 +2,10 @@ const shelljs = require("shelljs");
 const fs = require('fs');
 
 // download shell/core source code
-shelljs.cd("../");
-shelljs.exec("git clone https://github.com/nxshell/shell.git");
-shelljs.exec("git clone https://github.com/nxshell/core.git");
-shelljs.cd("./build");
+// shelljs.cd("../");
+// shelljs.exec("git clone https://github.com/nxshell/shell.git");
+// shelljs.exec("git clone https://github.com/nxshell/core.git");
+// shelljs.cd("./build");
 
 const build_packages = require('./package-lock.json');
 const electron_version = build_packages['dependencies']['electron']['version'];

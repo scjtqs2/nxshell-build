@@ -1,0 +1,6 @@
+dist
+pack
+core
+shell
+**/node_modules/*
+**/.DS_Store
